@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://kprofiles.com/wp-content/uploads/2025/06/MARTIN-1-900x600.jpeg"> <!-- Martin's photo as app icon (180x180 version; you can resize and host if needed) -->
+    <title>Yuki Bubble | 專屬聊天室</title>
+    <meta name="description" content="與CORTIS成員一對一的專屬私密訊息！專為Yuki設計。">
+    <!-- Enhanced styles for better resemblance to real Bubble apps -->
+    <style>
+        /* Global Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5faff; /* Soft light blue background for improved UI */
+            margin: 0;
+            padding: 0;
+            color: #333;
+            font-size: 16px;
+            line-height: 1.5;
+            overscroll-behavior: none; /* Prevent pull-to-refresh */
+        }
+        /* Header Styles */
+        .header {
+            background-color: #fff;
+            padding: 15px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .header h1 {
+            font-size: 18px;
+            margin: 0;
+            flex-grow: 1;
+            font-weight: 600;
+        }
+        .header button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: #333;
+        }
+        /* Section Titles */
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 15px 10px;
+            color: #333;
+        }
+        /* List Items for Friends and Chats */
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .list-item:hover {
+            background-color: #f5f5f5;
+        }
+        .list-item .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+        .list-item .name {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .list-item .date {
+            font-size: 12px;
+            color: #999;
+            margin-left: auto;
+        }
+        /* Chat Container */
+        .chat-container {
+            max-width: 600px;
+            margin: 60px auto 150px; /* Increased for input and nav */
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 210px);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .chat-header {
+            padding: 15px;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .chat-header .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .chat-header .name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .chat {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            background: #f0f0f0; /* Softer background for chat */
+            position: relative; /* Required for pseudo-element positioning */
+        }
+        .chat::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.3; /* Transparent to avoid affecting readability */
+            z-index: -1;
+        }
+        /* Message Styles - Enhanced to match Kakao-like design */
+        .message {
+            max-width: 75%;
+            margin-bottom: 20px;
+            position: relative;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .artist-msg {
+            display: flex;
+            align-items: flex-start;
+        }
+        .artist-msg .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+            margin-bottom: auto;
+        }
+        .artist-bubble {
+            background: #e6f7ff; /* Light blue for artist */
+            color: #000;
+            padding: 12px 16px;
+            border-radius: 20px 20px 20px 0;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .user-msg {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .user-bubble {
+            background: #dcf8c6; /* Light green for user */
+            color: #000;
+            padding: 12px 16px;
+            border-radius: 20px 20px 0 20px;
+            text-align: left;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .timestamp {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+            text-align: right;
+        }
+        .read-indicator {
+            font-size: 10px;
+            color: #007bff;
+            margin-left: 5px;
+        }
+        .translate-btn {
+            font-size: 12px;
+            color: #007bff;
+            cursor: pointer;
+            margin-top: 5px;
+            display: block;
+        }
+        img.inline-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-top: 5px;
+            display: block;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .voice-message {
+            background: #fff;
+            padding: 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .voice-message button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        /* Input Group - Enhanced with more buttons */
+        .input-group {
+            display: flex;
+            padding: 10px;
+            background: #fff;
+            border-top: 1px solid #e0e0e0;
+            position: fixed;
+            bottom: 50px;
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            left: 0;
+            right: 0;
+            align-items: center;
+            box-shadow: 0 -1px 2px rgba(0,0,0,0.05);
+        }
+        .input-group textarea {
+            flex-grow: 1;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 10px 15px;
+            font-size: 16px;
+            resize: none;
+            height: 40px;
+            margin-right: 10px;
+        }
+        .input-group button {
+            background: #25d366;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-left: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: background 0.2s;
+        }
+        .input-group button:hover {
+            background: #1ebe57;
+        }
+        /* Bottom Navigation - Enhanced with icons */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            background: #fff;
+            padding: 10px 0;
+            border-top: 1px solid #e0e0e0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+        }
+        .nav-item {
+            text-align: center;
+            color: #999;
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .nav-item.active {
+            color: #25d366;
+        }
+        /* Profile Section - Expanded */
+        .profile-section {
+            background: #fff;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: block;
+            margin: 0 auto 10px;
+            border: 2px solid #25d366;
+        }
+        .profile-name {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .anniversary-counter {
+            text-align: center;
+            font-size: 16px;
+            color: #007bff;
+            margin: 10px 0;
+        }
+        /* Emoji Picker - Expanded with more options */
+        .emoji-picker {
+            display: none;
+            padding: 10px;
+            background: #fff;
+            border-top: 1px solid #ddd;
+            position: fixed;
+            bottom: 100px;
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            overflow-x: auto;
+        }
+        .emoji-picker span {
+            font-size: 30px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #25d366;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 2000;
+            animation: slideDown 0.3s ease-out;
+            display: none;
+        }
+        @keyframes slideDown {
+            from { top: -50px; opacity: 0; }
+            to { top: 60px; opacity: 1; }
+        }
+        /* Media Query for Mobile (iPhone Optimization) */
+        @media (max-width: 576px) {
+            .header h1 {
+                font-size: 16px;
+            }
+            .section-title {
+                font-size: 20px;
+            }
+            .avatar {
+                width: 50px;
+                height: 50px;
+            }
+            .artist-msg .avatar {
+                width: 40px;
+                height: 40px;
+            }
+            .message {
+                max-width: 85%;
+            }
+            .input-group textarea {
+                height: 35px;
+                font-size: 14px;
+            }
+            .bottom-nav {
+                padding: 5px 0;
+            }
+            .nav-item {
+                font-size: 20px;
+            }
+        }
+        /* Additional Styles for Better Ratio and Layout */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 200px; /* Increased space */
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Animation for Messages */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Scrollbar Styles */
+        .chat::-webkit-scrollbar {
+            width: 5px;
+        }
+        .chat::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #ddd;
+        }
+        .header.dark-mode {
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #333;
+        }
+        .list-item.dark-mode {
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #333;
+        }
+        .chat-container.dark-mode {
+            background: #1e1e1e;
+        }
+        .chat.dark-mode {
+            background: #121212;
+        }
+        .artist-bubble.dark-mode {
+            background: #2a2a2a;
+            color: #ddd;
+        }
+        .user-bubble.dark-mode {
+            background: #3a3a3a;
+            color: #ddd;
+        }
+        .input-group.dark-mode {
+            background: #1e1e1e;
+            border-top: 1px solid #333;
+        }
+        .bottom-nav.dark-mode {
+            background: #1e1e1e;
+            border-top: 1px solid #333;
+        }
+        /* More CSS for expanded features */
+        .search-bar {
+            margin: 15px;
+            padding: 10px;
+            width: calc(100% - 30px);
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 16px;
+        }
+        .voice-record-btn {
+            background: #ff4081;
+        }
+        /* Empty Space Filler */
+        .empty-space {
+            height: 150px;
+        }
+    </style>
+    <script>
+        // Idols Data with More Korean Responses, Translations, Images, and Voice
+        const idols = {
+            'Martin': {
+                avatar: 'https://kprofiles.com/wp-content/uploads/2025/06/MARTIN-1-scaled.jpeg',
+                background: 'https://www.rollingstone.com/wp-content/uploads/2025/08/CORTIS.jpg', // Different group photo for background
+                responses: [
+                    { korean: '안녕 Yuki! 오늘 기분 어때?', chinese: '嗨 Yuki！今天心情如何？' },
+                    { korean: '방금 작곡 끝냈어~ 우리의 대화가 떠올라. 너의 하루는?', chinese: '剛完成作曲～想起我們的聊天。你的一天呢？' },
+                    { korean: '너의 에너지가 좋아! 오늘 뭐 영감을 줬어?', chinese: '愛你的能量！今天什麼激勵你？' },
+                    { korean: '잘 자 Yuki, 내일 봐요!', chinese: '晚安 Yuki，明天見！' },
+                    { korean: '새로운 아이디어 공유할게!', chinese: '分享新想法給你！' },
+                    { korean: '이 사진 어때? 새 앨범 재킷!', chinese: '這張照片如何？新專輯封面！', img: 'https://picsum.photos/300/200?random=1' },
+                    { korean: '목소리 들려줄게~', chinese: '聽聽我的聲音～', voice: 'Voice note from Martin' },
+                    { korean: '오늘 연습실에서 찍었어!', chinese: '今天在練習室拍的！', img: 'https://picsum.photos/300/200?random=2' },
+                    { korean: 'Yuki, 너의 의견이 필요해!', chinese: 'Yuki，需要你的意見！' },
+                    { korean: '행복한 주말 보내!', chinese: '快樂週末！' },
+                    { korean: '새 노래 스니펫 공유할게', chinese: '分享新歌片段' },
+                    { korean: '피곤하지만 네 메시지 보면 힘나', chinese: '疲憊但看到你的訊息就有力' },
+                    { korean: '함께 산책 갈까 상상해', chinese: '想像一起散步' },
+                    { korean: '좋은 소식 있어!', chinese: '有好消息！' },
+                    { korean: '너의 취미 뭐야?', chinese: '你的興趣是什麼？' },
+                    { korean: '오랜만이야! 뭐 해?', chinese: '好久不見！在幹嘛？' },
+                    { korean: '좋은 음악 추천할게', chinese: '推薦好音樂' },
+                    { korean: '너와 함께하고 싶어', chinese: '想和你一起' },
+                    { korean: '오늘 날씨 좋아!', chinese: '今天天氣好！' },
+                    { korean: '웃어 봐 Yuki', chinese: '笑一個 Yuki' },
+                    { korean: '새로운 계획 있어?', chinese: '有新計劃嗎？' },
+                    { korean: '감사해 항상', chinese: '總是感謝' },
+                    { korean: '즐거운 하루 되길', chinese: '祝愉快的一天' },
+                    { korean: '너의 목소리 듣고 싶어', chinese: '想聽你的聲音' },
+                    { korean: '함께 먹을까?', chinese: '一起吃嗎？' }
+                ]
+            },
+            'James': {
+                avatar: 'https://kprofiles.com/wp-content/uploads/2025/06/JAMES-scaled.jpeg',
+                background: 'https://www.rollingstone.com/wp-content/uploads/2025/08/CORTIS.jpg?w=1581&h=1054&crop=1', // Group photo variant
+                responses: [
+                    { korean: '오늘 춤 연습했어, 피곤하지만 너 생각하면 힘나!', chinese: '今天跳舞練習很累，但想到你就有動力！' },
+                    { korean: '새로운 댄스 스텝 보여줄까?', chinese: '分享我的新舞步給你看？', img: 'https://picsum.photos/300/200?random=3' },
+                    { korean: 'Yuki, 너의 하루는 어땠어?', chinese: 'Yuki，你的一天如何？' },
+                    { korean: '좋은 아침! 에너지 충전!', chinese: '早安！充滿能量！' },
+                    { korean: '함께 노래 부를까?', chinese: '一起唱歌嗎？' },
+                    { korean: '이 목소리 어때?', chinese: '這聲音如何？', voice: 'Voice note from James' },
+                    { korean: '팬미팅 사진!', chinese: '粉絲見面會照片！', img: 'https://picsum.photos/300/200?random=4' },
+                    { korean: '운동 추천해줄게', chinese: '推薦運動給你' },
+                    { korean: '웃는 얼굴 보고 싶어', chinese: '想看你的笑臉' },
+                    { korean: '새로운 취미 시작했어', chinese: '開始新興趣' },
+                    { korean: 'Yuki, 건강 챙겨!', chinese: 'Yuki，注意健康！' },
+                    { korean: '재미있는 이야기 해줄게', chinese: '講有趣的故事給你' },
+                    { korean: '함께 여행 꿈꿔', chinese: '夢想一起旅行' },
+                    { korean: '좋은 밤!', chinese: '晚安！' },
+                    { korean: '에너지 넘쳐!', chinese: '能量滿滿！' },
+                    { korean: '새로운 춤 배웠어', chinese: '學了新舞' },
+                    { korean: '너와 듀엣 할까?', chinese: '和你對唱嗎？' },
+                    { korean: '오늘 기분 최고!', chinese: '今天心情超好！' },
+                    { korean: '운동 가자', chinese: '去運動吧' },
+                    { korean: '좋은 꿈 꾸길', chinese: '做個好夢' },
+                    { korean: '너의 미소가 좋아', chinese: '喜歡你的微笑' },
+                    { korean: '새로운 도전', chinese: '新挑戰' },
+                    { korean: '함께 웃자', chinese: '一起笑吧' },
+                    { korean: '에너지 충전 완료', chinese: '能量充滿' },
+                    { korean: '너의 이야기 기다려', chinese: '等你的故事' }
+                ]
+            },
+            'Juhoon': {
+                avatar: 'https://kfriday-uploads.s3.ap-northeast-2.amazonaws.com/images/post/2025-08-11_10:03:04.769_0_B.webp',
+                background: 'https://preview.redd.it/what-do-you-think-so-far-about-cortis-v0-2qhjkve9erjf1.jpg?width=1080&crop=smart&auto=webp&s=16700ddcb719cd97eff1436b8becd45dea3dd527', // Reddit group photo
+                responses: [
+                    { korean: '내 목소리 오늘 어때? 특별히 깊게 들려?', chinese: '我的聲音今天特別深沉，聽起來如何？', voice: 'Voice note from Juhoon' },
+                    { korean: '농구 이야기 해볼까?', chinese: '來聊聊籃球吧！' },
+                    { korean: 'Yuki, 재미있는 일 있었어?', chinese: 'Yuki，有趣的事發生嗎？' },
+                    { korean: '피곤한 하루였어, 너는?', chinese: '疲憊的一天，你呢？' },
+                    { korean: '새로운 노래 추천!', chinese: '推薦新歌！' },
+                    { korean: '이 사진 봐!', chinese: '看這張照片！', img: 'https://picsum.photos/300/200?random=5' },
+                    { korean: '목소리로 인사!', chinese: '聲音問候！', voice: 'Greeting from Juhoon' },
+                    { korean: '스포츠 팁 공유', chinese: '分享運動小貼士' },
+                    { korean: 'Yuki, 웃어봐!', chinese: 'Yuki，笑一個！' },
+                    { korean: '새로운 도전 시작', chinese: '開始新挑戰' },
+                    { korean: '건강한 식단 추천', chinese: '推薦健康飲食' },
+                    { korean: '함께 게임 할까?', chinese: '一起玩遊戲嗎？' },
+                    { korean: '좋은 꿈 꿔', chinese: '做個好夢' },
+                    { korean: '에너지 충전 중', chinese: '能量充電中' },
+                    { korean: '너의 이야기 들려줘', chinese: '告訴我你的故事' },
+                    { korean: '농구 경기 봤어?', chinese: '看籃球比賽嗎？' },
+                    { korean: '목소리 연습 중', chinese: '練習聲音中' },
+                    { korean: '재미있는 에피소드', chinese: '有趣的插曲' },
+                    { korean: '건강 팁', chinese: '健康小貼士' },
+                    { korean: '함께 스포츠', chinese: '一起運動' },
+                    { korean: '좋은 아침 인사', chinese: '早安問候' },
+                    { korean: '너의 하루 계획', chinese: '你的一天計劃' },
+                    { korean: '피곤할 때 팁', chinese: '疲憊時小貼士' },
+                    { korean: '새로운 추천', chinese: '新推薦' },
+                    { korean: '웃는 하루 되길', chinese: '微笑的一天' }
+                ]
+            },
+            'Seonghyeon': {
+                avatar: 'https://kprofiles.com/wp-content/uploads/2025/08/SEONGHYEON-scaled.jpeg',
+                background: 'https://www.hollywoodreporter.com/wp-content/uploads/2025/10/CORTIS-_3-e1761695963257.jpg', // Hollywood Reporter group photo
+                responses: [
+                    { korean: '새 가사 썼어, 의견 들려줄래?', chinese: '寫了新歌詞，想聽你的意見！' },
+                    { korean: '오늘 기분 어때 Yuki?', chinese: '今天心情如何 Yuki？' },
+                    { korean: '춤 연습 중이야!', chinese: '正在練習舞蹈！', img: 'https://picsum.photos/300/200?random=6' },
+                    { korean: '좋은 밤 보내!', chinese: '晚安！' },
+                    { korean: '함께 여행 갈까 상상해 봐', chinese: '想像一起旅行吧' },
+                    { korean: '목소리 녹음했어', chinese: '錄了聲音', voice: 'Voice from Seonghyeon' },
+                    { korean: '새로운 사진!', chinese: '新照片！', img: 'https://picsum.photos/300/200?random=7' },
+                    { korean: '창작 아이디어 공유', chinese: '分享創作想法' },
+                    { korean: 'Yuki, 영감 줘!', chinese: 'Yuki，給我靈感！' },
+                    { korean: '행복한 하루', chinese: '快樂的一天' },
+                    { korean: '노래 부를게', chinese: '唱歌給你聽' },
+                    { korean: '피크닉 상상', chinese: '想像野餐' },
+                    { korean: '좋은 소식', chinese: '好消息' },
+                    { korean: '너의 꿈 뭐야?', chinese: '你的夢想是什麼？' },
+                    { korean: '함께 웃자', chinese: '一起笑吧' },
+                    { korean: '새 가사 아이디어', chinese: '新歌詞想法' },
+                    { korean: '오늘의 기분', chinese: '今天的心情' },
+                    { korean: '연습 사진', chinese: '練習照片' },
+                    { korean: '좋은 밤 인사', chinese: '晚安問候' },
+                    { korean: '여행 상상', chinese: '旅行想像' },
+                    { korean: '목소리 공유', chinese: '分享聲音' },
+                    { korean: '새로운 이미지', chinese: '新圖像' },
+                    { korean: '창작 공유', chinese: '創作分享' },
+                    { korean: '영감 필요', chinese: '需要靈感' },
+                    { korean: '행복 기원', chinese: '祝快樂' }
+                ]
+            },
+            'Keonho': {
+                avatar: 'https://www.rollingstone.com/wp-content/uploads/2025/08/CORTIS.jpg?w=1581&h=1054&crop=1',
+                background: 'https://od2-image-api.abs-cbn.com/prod/editorImage/1754883824297Cortis.jfif', // ABS-CBN group photo
+                responses: [
+                    { korean: '내 새로운 아이디어 슈퍼 쿨해, 들려줄게!', chinese: '我的新idea超酷，告訴你！' },
+                    { korean: '함께 창작 해볼까?', chinese: '一起創作點什麼？' },
+                    { korean: 'Yuki, 웃는 날이야!', chinese: 'Yuki，微笑的一天！' },
+                    { korean: '음악 추천해줄게', chinese: '推薦音樂給你' },
+                    { korean: '피곤하지만 행복해', chinese: '疲憊但快樂' },
+                    { korean: '이 사진 공유!', chinese: '分享這張照片！', img: 'https://picsum.photos/300/200?random=8' },
+                    { korean: '목소리 들려', chinese: '聽聲音', voice: 'Voice from Keonho' },
+                    { korean: '새로운 프로젝트', chinese: '新項目' },
+                    { korean: 'Yuki, 힘내!', chinese: 'Yuki，加油！' },
+                    { korean: '즐거운 시간', chinese: '愉快時光' },
+                    { korean: '아이디어 브레인스토밍', chinese: '腦storm想法' },
+                    { korean: '함께 모험', chinese: '一起冒險' },
+                    { korean: '좋은 아침', chinese: '早安' },
+                    { korean: '너의 생각', chinese: '你的想法' },
+                    { korean: '행복 공유', chinese: '分享快樂' },
+                    { korean: '새로운 아이디어', chinese: '新想法' },
+                    { korean: '창작 초대', chinese: '邀請創作' },
+                    { korean: '웃는 하루', chinese: '微笑一天' },
+                    { korean: '음악 공유', chinese: '分享音樂' },
+                    { korean: '행복한 피곤', chinese: '快樂的疲憊' },
+                    { korean: '사진 공유', chinese: '分享照片' },
+                    { korean: '목소리 공유', chinese: '分享聲音' },
+                    { korean: '프로젝트 시작', chinese: '開始項目' },
+                    { korean: '힘내 Yuki', chinese: '加油 Yuki' },
+                    { korean: '즐거운 모험', chinese: '愉快冒險' }
+                ]
+            }
+        };
+        let selectedIdol = 'Martin';
+        let currentLanguage = 'korean'; // Default to Korean
+        let userName = 'Yuki'; // Default user name, can be changed in profile
+        let chatHistory = {}; // To store chat history per idol
+        let anniversaryDays = 0; // Simulate anniversary counter
+        // Function to select idol and load chat
+        function selectIdol() {
+            selectedIdol = document.getElementById('idol-select').value;
+            const chat = document.querySelector('.chat');
+            chat.innerHTML = '';
+            document.getElementById('current-avatar').src = idols[selectedIdol].avatar;
+            document.getElementById('current-name').textContent = selectedIdol;
+            // Set chat background to idol's specific photo
+            chat.style.backgroundImage = `url(${idols[selectedIdol].background})`;
+            loadChatHistory();
+            if (chat.innerHTML === '') {
+                addMessage(selectedIdol, personalizeResponse(idols[selectedIdol].responses[0]), new Date().toLocaleTimeString(), false);
+                addMessage(selectedIdol, personalizeResponse(idols[selectedIdol].responses[1]), new Date().toLocaleTimeString(), false);
+            }
+            updateAnniversary();
+        }
+        // Personalize response with user name
+        function personalizeResponse(respObj) {
+            const personalized = { ...respObj };
+            if (personalized.korean) personalized.korean = personalized.korean.replace('Yuki', userName);
+            if (personalized.chinese) personalized.chinese = personalized.chinese.replace('Yuki', userName);
+            return personalized;
+        }
+        // Function to add message with enhanced types
+        function addMessage(sender, respObj, time, isRead = true) {
+            const chat = document.querySelector('.chat');
+            const isArtist = sender !== 'user';
+            const msgClass = isArtist ? 'artist-msg' : 'user-msg';
+            const bubbleClass = isArtist ? 'artist-bubble' : 'user-bubble';
+            const msgText = typeof respObj === 'string' ? respObj : (isArtist ? (currentLanguage === 'korean' ? respObj.korean : respObj.chinese) : respObj.text || '');
+            const translateText = isArtist ? (currentLanguage === 'korean' ? '翻譯成中文' : '顯示韓文') : '';
+            let content = `<strong>${sender}:</strong> ${msgText}`;
+            if (respObj.img) {
+                content += `<br><img src="${respObj.img}" alt="圖片" class="inline-img">`;
+            }
+            if (respObj.voice) {
+                content += `<div class="voice-message"><button onclick="playVoice('${respObj.voice}')">▶️</button> ${respObj.voice}</div>`;
+            }
+            const readInd = isRead ? '' : '<span class="read-indicator">1</span>';
+            const msgDiv = `
+                <div class="${msgClass}">
+                    ${isArtist ? `<img src="${idols[sender].avatar}" alt="${sender}" class="avatar">` : ''}
+                    <div class="message ${bubbleClass} ${document.body.classList.contains('dark-mode') ? 'dark-mode' : ''}">
+                        ${content}
+                        <div class="timestamp">${time}${readInd}</div>
+                        ${isArtist && respObj.korean ? `<div class="translate-btn" onclick="toggleTranslate(this, '${respObj.korean}', '${respObj.chinese}')">${translateText}</div>` : ''}
+                    </div>
+                </div>`;
+            chat.insertAdjacentHTML('beforeend', msgDiv);
+            chat.scrollTop = chat.scrollHeight;
+            saveChatHistory();
+            if (!isArtist) {
+                simulateRead();
+            }
+        }
+        // Simulate read by removing '1'
+        function simulateRead() {
+            setTimeout(() => {
+                const indicators = document.querySelectorAll('.read-indicator');
+                if (indicators.length > 0) {
+                    indicators[indicators.length - 1].remove();
+                }
+            }, 2000);
+        }
+        // Toggle translation for individual message
+        function toggleTranslate(btn, korean, chinese) {
+            const bubble = btn.closest('.message');
+            const textElement = bubble.querySelector('strong + :not(br)'); // Approximate selection
+            if (btn.textContent === '翻譯成中文') {
+                bubble.innerHTML = bubble.innerHTML.replace(korean, chinese);
+                btn.textContent = '顯示韓文';
+            } else {
+                bubble.innerHTML = bubble.innerHTML.replace(chinese, korean);
+                btn.textContent = '翻譯成中文';
+            }
+        }
+        // Global translate toggle
+        function toggleGlobalLanguage() {
+            currentLanguage = currentLanguage === 'korean' ? 'chinese' : 'korean';
+            reloadChat();
+            showNotification(currentLanguage === 'korean' ? '已切換到韓文' : '已切换到中文');
+        }
+        // Reload chat with current language
+        function reloadChat() {
+            const chat = document.querySelector('.chat');
+            const messages = chat.querySelectorAll('.artist-msg .artist-bubble');
+            messages.forEach(msg => {
+                // Assuming data stored in attributes or re-add
+            });
+            // For simplicity, reload full history
+            selectIdol();
+        }
+        // Send user message with character limit simulation
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const msg = input.value.trim();
+            if (msg && msg.length <= 200 + anniversaryDays * 10) { // Increase limit with days
+                addMessage('user', msg, new Date().toLocaleTimeString(), false);
+                input.value = '';
+                setTimeout(() => {
+                    const randomIndex = Math.floor(Math.random() * idols[selectedIdol].responses.length);
+                    addMessage(selectedIdol, personalizeResponse(idols[selectedIdol].responses[randomIndex]), new Date().toLocaleTimeString(), true);
+                }, 1500);
+            } else if (msg.length > 200 + anniversaryDays * 10) {
+                alert('訊息太長！您的字符限制為 ' + (200 + anniversaryDays * 10));
+            }
+        }
+        // Show emoji picker
+        function showEmojiPicker() {
+            document.querySelector('.emoji-picker').style.display = 'block';
+        }
+        // Send emoji
+        function sendEmoji(emoji) {
+            const input = document.getElementById('message-input');
+            input.value += emoji;
+            document.querySelector('.emoji-picker').style.display = 'none';
+        }
+        // Simulate voice play
+        function playVoice(voiceText) {
+            alert('Playing voice: ' + voiceText);
+        }
+        // Tab navigation
+        function openTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            const chatInput = document.getElementById('chat-input');
+            chatInput.style.display = tabName === 'chats' ? 'flex' : 'none';
+        }
+        // Save chat history to localStorage
+        function saveChatHistory() {
+            chatHistory[selectedIdol] = document.querySelector('.chat').innerHTML;
+            localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+        }
+        // Load chat history
+        function loadChatHistory() {
+            const saved = localStorage.getItem('chatHistory');
+            if (saved) {
+                chatHistory = JSON.parse(saved);
+                if (chatHistory[selectedIdol]) {
+                    document.querySelector('.chat').innerHTML = chatHistory[selectedIdol];
+                }
+            }
+        }
+        // Update anniversary counter (simulate)
+        function updateAnniversary() {
+            anniversaryDays = Math.floor(Math.random() * 100) + 1; // Random for demo
+            document.getElementById('anniversary').textContent = `與 ${selectedIdol} 的紀念日：${anniversaryDays} 天`;
+        }
+        // Toggle dark mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const elements = document.querySelectorAll('.header, .list-item, .chat-container, .chat, .input-group, .bottom-nav, .artist-bubble, .user-bubble');
+            elements.forEach(el => el.classList.toggle('dark-mode'));
+        }
+        // Show notification
+        function showNotification(text) {
+            const notif = document.getElementById('notification');
+            notif.textContent = text;
+            notif.style.display = 'block';
+            setTimeout(() => notif.style.display = 'none', 3000);
+        }
+        // Search friends (simple filter)
+        function searchFriends() {
+            const input = document.getElementById('friends-search').value.toLowerCase();
+            const items = document.querySelectorAll('#friends .list-item:not(:first-child)');
+            items.forEach(item => {
+                const name = item.querySelector('.name').textContent.toLowerCase();
+                item.style.display = name.includes(input) ? 'flex' : 'none';
+            });
+        }
+        // Initial load
+        window.onload = () => {
+            openTab('chats');
+            selectIdol();
+            // Simulate daily message
+            setInterval(() => {
+                if (document.getElementById('chats').classList.contains('active')) {
+                    const randomIndex = Math.floor(Math.random() * idols[selectedIdol].responses.length);
+                    addMessage(selectedIdol, personalizeResponse(idols[selectedIdol].responses[randomIndex]), new Date().toLocaleTimeString(), true);
+                }
+            }, 60000); // Every minute for demo
+        };
+    </script>
+</head>
+<body>
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+    <!-- Header -->
+    <div class="header">
+        <button onclick="history.back()">←</button>
+        <h1>Yuki Bubble</h1>
+        <button onclick="openTab('profile')">⚙️</button>
+    </div>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Friends Tab - Expanded with search -->
+        <div id="friends" class="tab-content">
+            <div class="section-title">FRIENDS</div>
+            <input type="text" id="friends-search" class="search-bar" placeholder="搜尋朋友..." oninput="searchFriends()">
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?1" class="avatar" alt="Profile">
+                <div class="name">My Profile - Yuki</div>
+            </div>
+            <div class="section-title">bubble Friends</div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?2" class="avatar" alt="Friend">
+                <div class="name">朋友1</div>
+                <div class="date">😊</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?3" class="avatar" alt="Friend">
+                <div class="name">朋友2</div>
+                <div class="date">🌸</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?4" class="avatar" alt="Friend">
+                <div class="name">朋友3</div>
+                <div class="date">😂</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?5" class="avatar" alt="Friend">
+                <div class="name">朋友4</div>
+                <div class="date">Home sweet Home</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?6" class="avatar" alt="Friend">
+                <div class="name">朋友5</div>
+                <div class="date">🐢</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?7" class="avatar" alt="Friend">
+                <div class="name">朋友6</div>
+                <div class="date">🍔</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?8" class="avatar" alt="Friend">
+                <div class="name">朋友7</div>
+                <div class="date">🎸</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?9" class="avatar" alt="Friend">
+                <div class="name">朋友8</div>
+                <div class="date">📚</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?10" class="avatar" alt="Friend">
+                <div class="name">朋友9</div>
+                <div class="date">🚀</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?11" class="avatar" alt="Friend">
+                <div class="name">朋友10</div>
+                <div class="date">🌟</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?12" class="avatar" alt="Friend">
+                <div class="name">朋友11</div>
+                <div class="date">🍕</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?13" class="avatar" alt="Friend">
+                <div class="name">朋友12</div>
+                <div class="date">🎉</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?14" class="avatar" alt="Friend">
+                <div class="name">朋友13</div>
+                <div class="date">🦄</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?15" class="avatar" alt="Friend">
+                <div class="name">朋友14</div>
+                <div class="date">📷</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?16" class="avatar" alt="Friend">
+                <div class="name">朋友15</div>
+                <div class="date">🎤</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?17" class="avatar" alt="Friend">
+                <div class="name">朋友16</div>
+                <div class="date">🌈</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?18" class="avatar" alt="Friend">
+                <div class="name">朋友17</div>
+                <div class="date">🍦</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?19" class="avatar" alt="Friend">
+                <div class="name">朋友18</div>
+                <div class="date">🏰</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?20" class="avatar" alt="Friend">
+                <div class="name">朋友19</div>
+                <div class="date">🐱</div>
+            </div>
+            <div class="list-item">
+                <img src="https://i.pravatar.cc/60?21" class="avatar" alt="Friend">
+                <div class="name">朋友20</div>
+                <div class="date">🌹</div>
+            </div>
+            <!-- More friends for length -->
+            <div class="empty-space"></div>
+        </div>
+        <!-- Chats Tab -->
+        <div id="chats" class="tab-content active">
+            <div class="section-title">CHATS</div>
+            <select id="idol-select" onchange="selectIdol()" style="margin: 15px; padding: 10px; width: calc(100% - 30px); border: 1px solid #ddd; border-radius: 5px; font-size: 16px;">
+                <option value="Martin">Martin</option>
+                <option value="James">James</option>
+                <option value="Juhoon">Juhoon</option>
+                <option value="Seonghyeon">Seonghyeon</option>
+                <option value="Keonho">Keonho</option>
+            </select>
+            <div class="chat-header">
+                <img id="current-avatar" src="" class="avatar" alt="Idol">
+                <div class="name" id="current-name"></div>
+                <button onclick="toggleGlobalLanguage()" style="margin-left: auto; padding: 5px 10px; background: #eee; border: none; border-radius: 5px;">全局翻譯</button>
+            </div>
+            <div class="chat">
+                <!-- Messages will be added here -->
+            </div>
+            <div id="anniversary" class="anniversary-counter"></div>
+        </div>
+        <!-- Profile Tab - Expanded with more settings -->
+        <div id="profile" class="tab-content">
+            <div class="profile-section">
+                <img src="https://i.pravatar.cc/100?22" class="profile-avatar" alt="Yuki Profile">
+                <div class="profile-name">Yuki</div>
+                <p>歡迎來到你的專屬Bubble！</p>
+                <input type="text" id="user-name" value="Yuki" placeholder="變更姓名" style="margin: 10px 0; padding: 10px; width: 100%; border: 1px solid #ddd; border-radius: 5px;">
+                <button onclick="userName = document.getElementById('user-name').value; selectIdol(); alert('姓名已更新')">更新姓名</button>
+                <button onclick="toggleDarkMode()">切換黑暗模式</button>
+                <button onclick="alert('設定已更新')">更新設定</button>
+                <button onclick="alert('已登出')">登出</button>
+            </div>
+            <div class="section-title">設定</div>
+            <div class="list-item">
+                <div class="name">語言偏好</div>
+            </div>
+            <div class="list-item">
+                <div class="name">通知</div>
+            </div>
+            <div class="list-item">
+                <div class="name">隱私政策</div>
+            </div>
+            <div class="list-item">
+                <div class="name">使用條款</div>
+            </div>
+            <div class="list-item">
+                <div class="name">主題顏色</div>
+            </div>
+            <div class="list-item">
+                <div class="name">字體大小</div>
+            </div>
+            <div class="list-item">
+                <div class="name">聲音設定</div>
+            </div>
+            <div class="list-item">
+                <div class="name">資料備份</div>
+            </div>
+            <div class="list-item">
+                <div class="name">帳戶安全</div>
+            </div>
+            <div class="list-item">
+                <div class="name">反饋</div>
+            </div>
+            <div class="list-item">
+                <div class="name">版本資訊</div>
+            </div>
+            <div class="list-item">
+                <div class="name">幫助中心</div>
+            </div>
+            <div class="list-item">
+                <div class="name">社群指南</div>
+            </div>
+            <div class="list-item">
+                <div class="name">隱私設定</div>
+            </div>
+            <div class="list-item">
+                <div class="name">通知偏好</div>
+            </div>
+            <div class="list-item">
+                <div class="name">帳戶管理</div>
+            </div>
+            <div class="list-item">
+                <div class="name">安全設定</div>
+            </div>
+            <div class="list-item">
+                <div class="name">外觀偏好</div>
+            </div>
+            <div class="list-item">
+                <div class="name">存取權限</div>
+            </div>
+            <div class="list-item">
+                <div class="name">語言選擇</div>
+            </div>
+            <div class="list-item">
+                <div class="name">通知頻率</div>
+            </div>
+            <div class="list-item">
+                <div class="name">資料使用</div>
+            </div>
+            <div class="list-item">
+                <div class="name">隱私控制</div>
+            </div>
+            <div class="list-item">
+                <div class="name">帳戶刪除</div>
+            </div>
+            <div class="list-item">
+                <div class="name">支援聯絡</div>
+            </div>
+            <!-- More settings for length -->
+            <div class="empty-space"></div>
+        </div>
+    </div>
+    <!-- Input Group (Global for Chats) - Fixed logos with Unicode, removed sticker button -->
+    <div class="input-group" id="chat-input" style="display: none;">
+        <textarea id="message-input" placeholder="輸入訊息..."></textarea>
+        <button onclick="showEmojiPicker()">😊</button>
+        <button class="voice-record-btn" onclick="alert('錄音功能模擬中')">🎤</button>
+        <button onclick="sendMessage()">✈️</button>
+    </div>
+    <!-- Emoji Picker -->
+    <div class="emoji-picker">
+        <span onclick="sendEmoji('😀')">😀</span>
+        <span onclick="sendEmoji('❤️')">❤️</span>
+        <span onclick="sendEmoji('👍')">👍</span>
+        <span onclick="sendEmoji('😂')">😂</span>
+        <span onclick="sendEmoji('🐶')">🐶</span>
+        <span onclick="sendEmoji('🌟')">🌟</span>
+        <span onclick="sendEmoji('🍔')">🍔</span>
+        <span onclick="sendEmoji('🎸')">🎸</span>
+        <span onclick="sendEmoji('📚')">📚</span>
+        <span onclick="sendEmoji('🚀')">🚀</span>
+        <span onclick="sendEmoji('🦄')">🦄</span>
+        <span onclick="sendEmoji('🍕')">🍕</span>
+        <span onclick="sendEmoji('🎉')">🎉</span>
+        <span onclick="sendEmoji('📷')">📷</span>
+        <span onclick="sendEmoji('🎤')">🎤</span>
+        <span onclick="sendEmoji('🌈')">🌈</span>
+        <span onclick="sendEmoji('🍦')">🍦</span>
+        <span onclick="sendEmoji('🏰')">🏰</span>
+        <span onclick="sendEmoji('🐱')">🐱</span>
+        <span onclick="sendEmoji('🌹')">🌹</span>
+        <span onclick="sendEmoji('😎')">😎</span>
+        <span onclick="sendEmoji('🤩')">🤩</span>
+        <span onclick="sendEmoji('🥳')">🥳</span>
+        <span onclick="sendEmoji('😍')">😍</span>
+        <span onclick="sendEmoji('😘')">😘</span>
+        <span onclick="sendEmoji('🤗')">🤗</span>
+        <span onclick="sendEmoji('😴')">😴</span>
+        <span onclick="sendEmoji('🤔')">🤔</span>
+        <span onclick="sendEmoji('😅')">😅</span>
+        <span onclick="sendEmoji('😢')">😢</span>
+        <!-- More emojis for length -->
+    </div>
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item" data-tab="friends" onclick="openTab('friends')">👤</div>
+        <div class="nav-item active" data-tab="chats" onclick="openTab('chats')">💬</div>
+        <div class="nav-item" data-tab="profile" onclick="openTab('profile')">⚙️</div>
+    </div>
+</body>
+</html>
